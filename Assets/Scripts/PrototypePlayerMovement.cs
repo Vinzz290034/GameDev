@@ -5,8 +5,12 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PrototypePlayerMovement : MonoBehaviour
 {
+    [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 4f;
     [SerializeField] private float gravity = -9.81f;
+
+    [Header("Input")]
+    [SerializeField] private InputActionReference moveAction;
 
     private CharacterController controller;
     private float verticalVelocity;
@@ -16,20 +20,27 @@ public class PrototypePlayerMovement : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
+    private void OnEnable()
+    {
+        if (moveAction != null)
+            moveAction.action.Enable();
+    }
+
+    private void OnDisable()
+    {
+        if (moveAction != null)
+            moveAction.action.Disable();
+    }
+
     private void Update()
     {
-        if (Keyboard.current == null)
+        if (controller == null || moveAction == null)
             return;
 
-        Vector2 input = Vector2.zero;
+        Vector2 input = moveAction.action.ReadValue<Vector2>();
 
-        if (Keyboard.current.wKey.isPressed) input.y += 1f;
-        if (Keyboard.current.sKey.isPressed) input.y -= 1f;
-        if (Keyboard.current.aKey.isPressed) input.x -= 1f;
-        if (Keyboard.current.dKey.isPressed) input.x += 1f;
-
-        Vector3 direction = new Vector3(input.x, 0f, input.y);
-        direction = Vector3.ClampMagnitude(direction, 1f);
+        Vector3 movement = new Vector3(input.x, 0f, input.y);
+        movement = Vector3.ClampMagnitude(movement, 1f);
 
         if (controller.isGrounded && verticalVelocity < 0f)
             verticalVelocity = -2f;
@@ -37,7 +48,7 @@ public class PrototypePlayerMovement : MonoBehaviour
         verticalVelocity += gravity * Time.deltaTime;
 
         Vector3 velocity =
-            direction * moveSpeed +
+            movement * moveSpeed +
             Vector3.up * verticalVelocity;
 
         controller.Move(velocity * Time.deltaTime);
