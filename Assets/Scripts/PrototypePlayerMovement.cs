@@ -6,8 +6,10 @@ using UnityEngine.InputSystem;
 public class PrototypePlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 4f;
+    [SerializeField] private float gravity = -9.81f;
 
     private CharacterController controller;
+    private float verticalVelocity;
 
     private void Awake()
     {
@@ -29,6 +31,15 @@ public class PrototypePlayerMovement : MonoBehaviour
         Vector3 direction = new Vector3(input.x, 0f, input.y);
         direction = Vector3.ClampMagnitude(direction, 1f);
 
-        controller.Move(direction * moveSpeed * Time.deltaTime);
+        if (controller.isGrounded && verticalVelocity < 0f)
+            verticalVelocity = -2f;
+
+        verticalVelocity += gravity * Time.deltaTime;
+
+        Vector3 velocity =
+            direction * moveSpeed +
+            Vector3.up * verticalVelocity;
+
+        controller.Move(velocity * Time.deltaTime);
     }
 }
